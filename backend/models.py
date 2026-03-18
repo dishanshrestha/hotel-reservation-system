@@ -32,7 +32,7 @@ class Room(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     room_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    image: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[str | None] = mapped_column(String(255), nullable=True)
     wifi: Mapped[str] = mapped_column(String(255), default="yes", nullable=False)
@@ -73,7 +73,7 @@ class Gallary(Base):
     __tablename__ = "gallaries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    image: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=dt.datetime.utcnow, nullable=False)
     updated_at: Mapped[dt.datetime] = mapped_column(
         DateTime,
