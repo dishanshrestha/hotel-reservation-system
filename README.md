@@ -1,66 +1,128 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Hotel Reservation System (Python Backend)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This repository has been migrated from PHP/Laravel to a Python backend.
 
-## About Laravel
+- Backend API: `backend/` (FastAPI + SQLAlchemy + JWT auth)
+- Frontend files: `frontend/`
+- SQL dump: `hotel.sql`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Python 3.11+
+- FastAPI
+- SQLAlchemy
+- Uvicorn
+- SQLite by default (configurable via `DATABASE_URL`)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Highlights
 
-## Learning Laravel
+- Admin panel available at `frontend/public/admin/login.html`
+- Admin dashboard supports:
+	- room CRUD
+	- gallery CRUD
+	- bookings status updates
+	- users list
+- Image input supports both:
+	- file upload (`image_file`)
+	- image URL (`image_url`)
+- Uploaded images are stored in `backend/media/` and served from `/media/*`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Project Structure
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- `backend/app.py`: API routes and business logic
+- `backend/models.py`: SQLAlchemy models
+- `backend/auth.py`: password hashing and JWT helpers
+- `backend/database.py`: DB engine and session management
+- `backend/requirements.txt`: Python dependencies
+- `frontend/`: frontend assets and tooling
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Backend Setup
 
-## Laravel Sponsors
+From repository root:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+```
 
-### Premium Partners
+## Run Backend
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+cd backend
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
 
-## Contributing
+API base URL:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- `http://localhost:8000`
 
-## Code of Conduct
+Health check:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- `GET /api/health`
 
-## Security Vulnerabilities
+## Environment Variables
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Supported backend environment variables:
 
-## License
+- `DATABASE_URL` (default: `sqlite:///backend/hotel.db`)
+- `JWT_SECRET_KEY` (default fallback exists, set a secure value for production)
+- `ACCESS_TOKEN_EXPIRE_MINUTES` (default: `1440`)
+- `CORS_ORIGINS` (default: `*`, comma-separated list supported)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Example:
+
+```bash
+export DATABASE_URL="sqlite:///$(pwd)/backend/hotel.db"
+export JWT_SECRET_KEY="replace-with-a-secure-random-secret"
+export CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5173"
+```
+
+## Frontend
+
+Frontend source/static assets are in `frontend/`.
+Vite is configured with `frontend/public` as the app root.
+
+If you want to run frontend tooling:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Notes About Migration
+
+- Legacy PHP files were removed.
+- Database table names used by the Python backend are aligned with the previous schema (`users`, `rooms`, `bookings`, `gallaries`, `contacts`, `room_ratings`).
+- Uploaded files from API endpoints are stored under `backend/media/`.
+
+## Admin Panel Usage
+
+1. Start backend API:
+
+```bash
+cd backend
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+2. Start frontend dev server:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+3. Open admin login:
+
+- `http://localhost:5173/admin/login.html`
+
+4. Login using an account whose `usertype` is `admin`.
+
+If you do not have an admin user yet, create one:
+
+```bash
+cd backend
+python seed_admin.py --email admin@example.com --password StrongPass123! --name "Hotel Admin"
+```
