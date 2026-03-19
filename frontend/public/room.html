@@ -6,7 +6,6 @@
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <!-- mobile metas -->
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="viewport" content="initial-scale=1, maximum-scale=1">
       <meta name="api-base-url" content="%VITE_API_BASE_URL%">
       <!-- site metas -->
       <title>keto</title>
@@ -110,6 +109,15 @@
             </div>
             <div class="row">
                <div class="col-md-12">
+                  <div id="recommendations-section" class="recommendations-section">
+                     <h3>Recommended For Your Stay</h3>
+                     <p id="recommendations-meta" class="recommendations-meta"></p>
+                     <div id="recommendations-grid" class="row"></div>
+                  </div>
+               </div>
+            </div>
+            <div class="row">
+               <div class="col-md-12">
                   <div id="rooms-feedback" class="room-page-feedback"></div>
                </div>
             </div>
@@ -193,13 +201,13 @@
                      <h3>News letter</h3>
                      <form class="bottom_form">
                         <input class="enter" placeholder="Enter your email" type="text" name="Enter your email">
-                        <button class="sub_btn">subscribe</button>
+                        <button type="submit" class="sub_btn">subscribe</button>
                      </form>
                      <ul class="social_icon">
-                        <li><a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-youtube-play" aria-hidden="true"></i></a></li>
+                        <li><a href="#" title="Facebook" aria-label="Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                        <li><a href="#" title="Twitter" aria-label="Twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+                        <li><a href="#" title="LinkedIn" aria-label="LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li>
+                        <li><a href="#" title="YouTube" aria-label="YouTube"><i class="fa fa-youtube-play" aria-hidden="true"></i></a></li>
                      </ul>
                   </div>
                </div>

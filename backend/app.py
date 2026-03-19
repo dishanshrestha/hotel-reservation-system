@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import heapq
 import os
 import smtplib
 import ssl
@@ -292,6 +293,205 @@ def _booking_overlaps(db: Session, room_id: int, start_date: dt.date, end_date: 
         .first()
     )
     return overlapping is not None
+
+
+def _parse_booking_date(value: str | None) -> dt.date | None:
+    if not value:
+        return None
+    try:
+        return dt.date.fromisoformat(str(value))
+    except ValueError:
+        return None
+
+
+def _collect_room_booking_intervals(db: Session, room_id: int) -> list[tuple[dt.date, dt.date]]:
+    records = (
+        db.query(models.Booking.start_date, models.Booking.end_date)
+        .filter(models.Booking.room_id == str(room_id))
+        .all()
+    )
+
+    intervals: list[tuple[dt.date, dt.date]] = []
+    for start_raw, end_raw in records:
+        start_date = _parse_booking_date(start_raw)
+        end_date = _parse_booking_date(end_raw)
+        if not start_date or not end_date or end_date < start_date:
+            continue
+        intervals.append((start_date, end_date))
+
+    intervals.sort(key=lambda item: item[0])
+    return intervals
+
+
+def _merge_booking_intervals(intervals: list[tuple[dt.date, dt.date]]) -> list[tuple[dt.date, dt.date]]:
+    if not intervals:
+        return []
+
+    merged: list[list[dt.date]] = [[intervals[0][0], intervals[0][1]]]
+    for start_date, end_date in intervals[1:]:
+        last_start, last_end = merged[-1]
+        if start_date <= (last_end + dt.timedelta(days=1)):
+            merged[-1][1] = max(last_end, end_date)
+        else:
+            merged.append([start_date, end_date])
+
+    return [(item[0], item[1]) for item in merged]
+
+
+def _find_next_available_slots(
+    db: Session,
+    room_id: int,
+    requested_start: dt.date,
+    requested_end: dt.date,
+    max_suggestions: int = 3,
+    lookahead_days: int = 180,
+) -> list[dict[str, Any]]:
+    stay_nights = max(1, (requested_end - requested_start).days)
+    horizon = requested_start + dt.timedelta(days=lookahead_days)
+
+    intervals = _merge_booking_intervals(_collect_room_booking_intervals(db, room_id))
+
+    suggestions: list[dict[str, Any]] = []
+    cursor = requested_start
+
+    for interval_start, interval_end in intervals:
+        if len(suggestions) >= max_suggestions or cursor > horizon:
+            break
+
+        latest_start_before_interval = interval_start - dt.timedelta(days=stay_nights + 1)
+        while cursor <= latest_start_before_interval and len(suggestions) < max_suggestions and cursor <= horizon:
+            suggestion_end = cursor + dt.timedelta(days=stay_nights)
+            suggestions.append(
+                {
+                    "start_date": cursor.isoformat(),
+                    "end_date": suggestion_end.isoformat(),
+                    "nights": stay_nights,
+                }
+            )
+            cursor = suggestion_end + dt.timedelta(days=1)
+
+        if cursor <= interval_end:
+            cursor = interval_end + dt.timedelta(days=1)
+
+    while len(suggestions) < max_suggestions and cursor <= horizon:
+        suggestion_end = cursor + dt.timedelta(days=stay_nights)
+        suggestions.append(
+            {
+                "start_date": cursor.isoformat(),
+                "end_date": suggestion_end.isoformat(),
+                "nights": stay_nights,
+            }
+        )
+        cursor = suggestion_end + dt.timedelta(days=1)
+
+    return suggestions
+
+
+def _as_bool_flag(value: str | None) -> bool | None:
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "required", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return None
+
+
+def _wifi_available(value: str | None) -> bool:
+    return str(value or "").strip().lower() in {"yes", "true", "1", "available"}
+
+
+def _recommend_rooms_for_stay(
+    db: Session,
+    rooms: list[dict[str, Any]],
+    start_date: dt.date | None,
+    end_date: dt.date | None,
+    room_type: str | None,
+    max_budget: float | None,
+    wifi_required: bool | None,
+    top_k: int,
+) -> list[dict[str, Any]]:
+    available_rooms: list[dict[str, Any]] = []
+    price_values: list[float] = []
+
+    for room in rooms:
+        room_id = int(room["id"])
+        if start_date and end_date and _booking_overlaps(db, room_id, start_date, end_date):
+            continue
+        available_rooms.append(room)
+        room_price = _safe_float(room.get("price"))
+        if room_price is not None:
+            price_values.append(room_price)
+
+    if not available_rooms:
+        return []
+
+    min_price = min(price_values) if price_values else None
+    max_price = max(price_values) if price_values else None
+
+    scored_items: list[tuple[float, dict[str, Any]]] = []
+    for room in available_rooms:
+        room_price = _safe_float(room.get("price"))
+        rating_score = min(1.0, max(0.0, float(room.get("average_rating") or 0) / 5.0))
+
+        if max_budget is not None:
+            if room_price is None:
+                price_score = 0.35
+            elif room_price <= max_budget:
+                affordability = max(0.0, 1.0 - (room_price / max_budget))
+                price_score = 0.55 + (0.45 * affordability)
+            else:
+                over_budget = (room_price - max_budget) / max_budget
+                price_score = max(0.0, 0.4 - over_budget)
+        else:
+            if room_price is None or min_price is None or max_price is None:
+                price_score = 0.5
+            elif max_price == min_price:
+                price_score = 1.0
+            else:
+                price_score = 1.0 - ((room_price - min_price) / (max_price - min_price))
+
+        if room_type:
+            type_score = 1.0 if str(room.get("room_type") or "").strip().lower() == room_type.strip().lower() else 0.0
+        else:
+            type_score = 0.5
+
+        room_wifi = _wifi_available(room.get("wifi"))
+        if wifi_required is True:
+            wifi_score = 1.0 if room_wifi else 0.0
+        elif wifi_required is False:
+            wifi_score = 1.0 if not room_wifi else 0.6
+        else:
+            wifi_score = 0.5
+
+        weighted_score = (
+            (0.42 * rating_score)
+            + (0.28 * price_score)
+            + (0.20 * type_score)
+            + (0.10 * wifi_score)
+        )
+
+        reasons = [
+            f"rating={round(rating_score * 100, 1)}%",
+            f"price-fit={round(price_score * 100, 1)}%",
+            f"type-fit={round(type_score * 100, 1)}%",
+            f"wifi-fit={round(wifi_score * 100, 1)}%",
+        ]
+
+        scored_items.append(
+            (
+                weighted_score,
+                {
+                    **room,
+                    "recommendation_score": round(weighted_score, 4),
+                    "recommendation_reasons": reasons,
+                },
+            )
+        )
+
+    best = heapq.nlargest(top_k, scored_items, key=lambda item: item[0])
+    return [item[1] for item in best]
 
 
 def _create_booking(
@@ -598,24 +798,110 @@ def legacy_room_details(room_id: int, db: Session = Depends(get_db)):
     return room_details(room_id=room_id, db=db)
 
 
+@app.get("/api/recommendations/rooms")
+def recommend_rooms(
+    start_date: dt.date | None = Query(default=None),
+    end_date: dt.date | None = Query(default=None),
+    room_type: str | None = Query(default=None),
+    max_budget: float | None = Query(default=None, gt=0),
+    wifi: str | None = Query(default=None),
+    top_k: int = Query(default=3, ge=1, le=10),
+    db: Session = Depends(get_db),
+):
+    if (start_date is None) ^ (end_date is None):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Provide both start_date and end_date")
+
+    if start_date and end_date and end_date <= start_date:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="end_date must be after start_date")
+
+    wifi_required = _as_bool_flag(wifi)
+    all_rooms = _filter_rooms(db, price_range=None, room_type=None)
+    recommendations = _recommend_rooms_for_stay(
+        db=db,
+        rooms=all_rooms,
+        start_date=start_date,
+        end_date=end_date,
+        room_type=room_type,
+        max_budget=max_budget,
+        wifi_required=wifi_required,
+        top_k=top_k,
+    )
+
+    return {
+        "count": len(recommendations),
+        "algorithm": "weighted-multi-factor-top-k",
+        "recommendations": recommendations,
+    }
+
+
+@app.get("/api/rooms/{room_id}/availability-suggestions")
+def room_availability_suggestions(
+    room_id: int,
+    start_date: dt.date,
+    end_date: dt.date,
+    max_suggestions: int = Query(default=3, ge=1, le=10),
+    db: Session = Depends(get_db),
+):
+    if end_date <= start_date:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="end_date must be after start_date")
+
+    if not _room_exists(db, room_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Room not found")
+
+    suggestions = _find_next_available_slots(
+        db=db,
+        room_id=room_id,
+        requested_start=start_date,
+        requested_end=end_date,
+        max_suggestions=max_suggestions,
+    )
+    return {
+        "room_id": room_id,
+        "requested_start_date": start_date.isoformat(),
+        "requested_end_date": end_date.isoformat(),
+        "count": len(suggestions),
+        "algorithm": "merged-interval-gap-scan",
+        "alternative_slots": suggestions,
+    }
+
+
 @app.post("/api/bookings", status_code=status.HTTP_201_CREATED)
 def create_booking(
     payload: BookingCreateRequest,
     db: Session = Depends(get_db),
     current_user: models.User | None = Depends(get_optional_user),
 ):
-    booking = _create_booking(
-        db=db,
-        room_id=payload.room_id,
-        start_date=payload.start_date,
-        end_date=payload.end_date,
-        name=payload.name,
-        email=payload.email,
-        phone=payload.phone,
-        total_price=payload.total_price,
-        status_value="waiting",
-        current_user=current_user,
-    )
+    try:
+        booking = _create_booking(
+            db=db,
+            room_id=payload.room_id,
+            start_date=payload.start_date,
+            end_date=payload.end_date,
+            name=payload.name,
+            email=payload.email,
+            phone=payload.phone,
+            total_price=payload.total_price,
+            status_value="waiting",
+            current_user=current_user,
+        )
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_409_CONFLICT:
+            alternatives = _find_next_available_slots(
+                db=db,
+                room_id=payload.room_id,
+                requested_start=payload.start_date,
+                requested_end=payload.end_date,
+                max_suggestions=3,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "Room is already booked for the selected dates",
+                    "alternative_slots": alternatives,
+                },
+            ) from exc
+        raise
+
     booking_data = _serialize_booking(db, booking)
     email_sent, email_message = _send_booking_confirmation_email(booking_data)
     return {
@@ -633,18 +919,37 @@ def create_booking_legacy(
     db: Session = Depends(get_db),
     current_user: models.User | None = Depends(get_optional_user),
 ):
-    booking = _create_booking(
-        db=db,
-        room_id=room_id,
-        start_date=payload.start_date,
-        end_date=payload.end_date,
-        name=payload.name,
-        email=payload.email,
-        phone=payload.phone,
-        total_price=payload.total_price,
-        status_value="waiting",
-        current_user=current_user,
-    )
+    try:
+        booking = _create_booking(
+            db=db,
+            room_id=room_id,
+            start_date=payload.start_date,
+            end_date=payload.end_date,
+            name=payload.name,
+            email=payload.email,
+            phone=payload.phone,
+            total_price=payload.total_price,
+            status_value="waiting",
+            current_user=current_user,
+        )
+    except HTTPException as exc:
+        if exc.status_code == status.HTTP_409_CONFLICT:
+            alternatives = _find_next_available_slots(
+                db=db,
+                room_id=room_id,
+                requested_start=payload.start_date,
+                requested_end=payload.end_date,
+                max_suggestions=3,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "Room is already booked for the selected dates",
+                    "alternative_slots": alternatives,
+                },
+            ) from exc
+        raise
+
     booking_data = _serialize_booking(db, booking)
     email_sent, email_message = _send_booking_confirmation_email(booking_data)
     return {

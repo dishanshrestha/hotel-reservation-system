@@ -1074,6 +1074,56 @@ ul.social_icon li a:hover,
      margin: 8px 0 0;
 }
 
+.recommendations-section {
+     display: none;
+     background: var(--brand-surface);
+     border: 1px solid var(--brand-border);
+     border-radius: 12px;
+     padding: 20px;
+     margin: 6px 0 28px;
+}
+
+.recommendations-section.is-visible {
+     display: block;
+}
+
+.recommendations-section h3 {
+     margin: 0 0 8px;
+     color: var(--brand-ink);
+     font-weight: 600;
+}
+
+.recommendations-meta {
+     color: var(--brand-muted);
+     margin-bottom: 12px;
+}
+
+.recommendation-card {
+     border: 1px solid #bfe3dd;
+     box-shadow: 0 8px 20px rgba(15, 118, 110, 0.08);
+}
+
+.slot-suggestion-list {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 8px;
+     margin-top: 8px;
+}
+
+.slot-suggestion-btn {
+     border: 1px solid var(--brand-border);
+     background: #ffffff;
+     color: var(--brand-ink);
+     border-radius: 999px;
+     font-size: 13px;
+     padding: 6px 12px;
+}
+
+.slot-suggestion-btn:hover {
+     border-color: var(--brand-primary);
+     color: var(--brand-primary-dark);
+}
+
 
 
 
