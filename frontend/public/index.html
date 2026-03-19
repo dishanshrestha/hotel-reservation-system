@@ -122,20 +122,34 @@
                   <div class="col-md-5">
                      <div class="book_room">
                         <h1>Book a Room Online</h1>
-                        <form class="book_now">
+                        <form class="book_now" action="room.html" method="get">
                            <div class="row">
                               <div class="col-md-12">
                                  <span>Arrival</span>
-                                 <img class="date_cua" src="images/date.png">
-                                 <input class="online_book" placeholder="dd/mm/yyyy" type="date" name="dd/mm/yyyy">
+                                 <img
+                                    class="date_cua js-date-picker-trigger"
+                                    src="images/date.png"
+                                    alt="Open arrival calendar"
+                                    role="button"
+                                    tabindex="0"
+                                    data-target="arrival-date"
+                                 >
+                                 <input id="arrival-date" class="online_book" placeholder="dd/mm/yyyy" type="date" name="arrival" required>
                               </div>
                               <div class="col-md-12">
                                  <span>Departure</span>
-                                 <img class="date_cua" src="images/date.png">
-                                 <input class="online_book" placeholder="dd/mm/yyyy" type="date" name="dd/mm/yyyy">
+                                 <img
+                                    class="date_cua js-date-picker-trigger"
+                                    src="images/date.png"
+                                    alt="Open departure calendar"
+                                    role="button"
+                                    tabindex="0"
+                                    data-target="departure-date"
+                                 >
+                                 <input id="departure-date" class="online_book" placeholder="dd/mm/yyyy" type="date" name="departure" required>
                               </div>
                               <div class="col-md-12">
-                                 <button class="book_btn">Book Now</button>
+                                 <button class="book_btn" type="submit">Book Now</button>
                               </div>
                            </div>
                         </form>
@@ -153,7 +167,7 @@
                <div class="col-md-5">
                   <div class="titlepage">
                      <h2>About Us</h2>
-                     <p>The passage experienced a surge in popularity during the 1960s when Letraset used it on their dry-transfer sheets, and again during the 90s as desktop publishers bundled the text with their software. Today it's seen all around the web; on templates, websites, and stock designs. Use our generator to get your own, or read on for the authoritative history of lorem ipsum. </p>
+                     <p>Located near Thamel, our hotel blends local charm with modern comfort, welcoming travelers, families, and long-stay guests with attentive service.</p>
                      <a class="read_more" href="Javascript:void(0)"> Read More</a>
                   </div>
                </div>
@@ -173,7 +187,7 @@
                <div class="col-md-12">
                   <div class="titlepage">
                      <h2>Our Room</h2>
-                     <p>Lorem Ipsum available, but the majority have suffered </p>
+                     <p>Comfort, warmth, and authentic Nepali hospitality await every guest. </p>
                   </div>
                </div>
             </div>
@@ -185,7 +199,7 @@
                      </div>
                      <div class="bed_room">
                         <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                        <p>Thoughtfully designed rooms provide rest, privacy, and convenience for every stay.</p>
                      </div>
                   </div>
                </div>
@@ -196,7 +210,7 @@
                      </div>
                      <div class="bed_room">
                         <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                        <p>Thoughtfully designed rooms provide rest, privacy, and convenience for every stay.</p>
                      </div>
                   </div>
                </div>
@@ -207,7 +221,7 @@
                      </div>
                      <div class="bed_room">
                         <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                        <p>Thoughtfully designed rooms provide rest, privacy, and convenience for every stay.</p>
                      </div>
                   </div>
                </div>
@@ -218,7 +232,7 @@
                      </div>
                      <div class="bed_room">
                         <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                        <p>Thoughtfully designed rooms provide rest, privacy, and convenience for every stay.</p>
                      </div>
                   </div>
                </div>
@@ -229,7 +243,7 @@
                      </div>
                      <div class="bed_room">
                         <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                        <p>Thoughtfully designed rooms provide rest, privacy, and convenience for every stay.</p>
                      </div>
                   </div>
                </div>
@@ -240,7 +254,7 @@
                      </div>
                      <div class="bed_room">
                         <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                        <p>Thoughtfully designed rooms provide rest, privacy, and convenience for every stay.</p>
                      </div>
                   </div>
                </div>
@@ -310,7 +324,7 @@
                <div class="col-md-12">
                   <div class="titlepage">
                      <h2>Blog</h2>
-                     <p>Lorem Ipsum available, but the majority have suffered </p>
+                     <p>Comfort, warmth, and authentic Nepali hospitality await every guest. </p>
                   </div>
                </div>
             </div>
@@ -323,7 +337,7 @@
                      <div class="blog_room">
                         <h3>Bed Room</h3>
                         <span>The standard chunk </span>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generatorsIf you are   </p>
+                        <p>Enjoy clean spaces, practical amenities, and friendly support throughout your visit.</p>
                      </div>
                   </div>
                </div>
@@ -335,7 +349,7 @@
                      <div class="blog_room">
                         <h3>Bed Room</h3>
                         <span>The standard chunk </span>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generatorsIf you are   </p>
+                        <p>Enjoy clean spaces, practical amenities, and friendly support throughout your visit.</p>
                      </div>
                   </div>
                </div>
@@ -347,7 +361,7 @@
                      <div class="blog_room">
                         <h3>Bed Room</h3>
                         <span>The standard chunk </span>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generatorsIf you are   </p>
+                        <p>Enjoy clean spaces, practical amenities, and friendly support throughout your visit.</p>
                      </div>
                   </div>
                </div>
@@ -390,7 +404,7 @@
                <div class="col-md-6">
                   <div class="map_main">
                      <div class="map-responsive">
-                        <iframe src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA0s1a7phLN0iaD6-UE7m4qP-z21pH0eSc&amp;q=Eiffel+Tower+Paris+France" width="600" height="400" frameborder="0" style="border:0; width: 100%;" allowfullscreen=""></iframe>
+                        <iframe src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA0s1a7phLN0iaD6-UE7m4qP-z21pH0eSc&amp;q=Thamel+Kathmandu+Nepal" width="600" height="400" frameborder="0" style="border:0; width: 100%;" allowfullscreen=""></iframe>
                      </div>
                   </div>
                </div>

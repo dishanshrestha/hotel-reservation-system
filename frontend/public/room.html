@@ -7,6 +7,7 @@
       <!-- mobile metas -->
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+      <meta name="api-base-url" content="%VITE_API_BASE_URL%">
       <!-- site metas -->
       <title>keto</title>
       <meta name="keywords" content="">
@@ -103,75 +104,60 @@
             <div class="row">
                <div class="col-md-12">
                   <div class="titlepage">
-                     <p  class="margin_0">Lorem Ipsum available, but the majority have suffered </p>
+                     <p  class="margin_0">Comfort, warmth, and authentic Nepali hospitality await every guest. </p>
                   </div>
                </div>
             </div>
             <div class="row">
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room1.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
+               <div class="col-md-12">
+                  <div id="rooms-feedback" class="room-page-feedback"></div>
                </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room2.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
+            </div>
+            <div class="row" id="rooms-grid">
+               <div class="col-md-12">
+                  <p class="text-center py-4">Loading rooms...</p>
                </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room3.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
-               </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room4.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
-               </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room5.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
-               </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room6.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
+            </div>
+            <div class="row mt-4">
+               <div class="col-md-12">
+                  <div class="room-booking-panel" id="room-booking-panel">
+                     <h3>Book Selected Room</h3>
+                     <p>Select a room above, then complete the details below. No account is required.</p>
+                     <form id="room-booking-form" novalidate>
+                        <input type="hidden" id="selected-room-id" name="selected-room-id">
+                        <div class="form-row">
+                           <div class="form-group col-md-6">
+                              <label for="selected-room-name">Selected Room</label>
+                              <input type="text" class="form-control" id="selected-room-name" placeholder="Pick a room from the list" readonly>
+                           </div>
+                           <div class="form-group col-md-6">
+                              <label for="booking-name">Full Name</label>
+                              <input type="text" class="form-control" id="booking-name" placeholder="Your full name" required>
+                           </div>
+                        </div>
+                        <div class="form-row">
+                           <div class="form-group col-md-6">
+                              <label for="booking-email">Email</label>
+                              <input type="email" class="form-control" id="booking-email" placeholder="name@example.com" required>
+                           </div>
+                           <div class="form-group col-md-6">
+                              <label for="booking-phone">Phone</label>
+                              <input type="text" class="form-control" id="booking-phone" placeholder="+977...">
+                           </div>
+                        </div>
+                        <div class="form-row">
+                           <div class="form-group col-md-6">
+                              <label for="booking-start-date">Arrival</label>
+                              <input type="date" class="form-control" id="booking-start-date" required>
+                           </div>
+                           <div class="form-group col-md-6">
+                              <label for="booking-end-date">Departure</label>
+                              <input type="date" class="form-control" id="booking-end-date" required>
+                           </div>
+                        </div>
+                        <button type="submit" class="book_btn">Confirm Booking</button>
+                        <div id="booking-message" class="room-page-feedback mt-3"></div>
+                     </form>
                   </div>
                </div>
             </div>
@@ -240,6 +226,7 @@
       <script src="js/jquery-3.0.0.min.js"></script>
       <!-- sidebar -->
       <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
+      <script src="js/room-booking.js"></script>
       <script src="js/custom.js"></script>
    </body>
 </html>

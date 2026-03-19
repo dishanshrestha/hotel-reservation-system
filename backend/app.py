@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import smtplib
+import ssl
 import shutil
 import uuid
 from decimal import Decimal
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Annotated, Any
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -15,6 +19,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field, model_validator
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 import models
 from auth import (
@@ -334,6 +340,62 @@ def _create_booking(
     return booking
 
 
+def _bool_env(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _send_booking_confirmation_email(booking_data: dict[str, Any]) -> tuple[bool, str]:
+    recipient = str(booking_data.get("email") or "").strip()
+    if not recipient:
+        return False, "Booking email is missing"
+
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    if not smtp_host:
+        return False, "SMTP is not configured"
+
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_username = os.getenv("SMTP_USERNAME", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    smtp_sender = os.getenv("SMTP_SENDER", smtp_username or "no-reply@localhost").strip()
+    use_tls = _bool_env("SMTP_USE_TLS", True)
+
+    room_label = booking_data.get("room_title") or f"Room #{booking_data.get('room_id')}"
+    booking_id = booking_data.get("id")
+
+    subject = f"Booking Confirmation #{booking_id}"
+    body = (
+        "Your hotel booking has been received.\n\n"
+        f"Booking ID: {booking_id}\n"
+        f"Room: {room_label}\n"
+        f"Guest Name: {booking_data.get('name') or '-'}\n"
+        f"Check-in: {booking_data.get('start_date') or '-'}\n"
+        f"Check-out: {booking_data.get('end_date') or '-'}\n"
+        f"Status: {booking_data.get('status') or '-'}\n"
+        f"Total Price: {booking_data.get('total_price') or '-'}\n\n"
+        "Thank you for choosing our hotel."
+    )
+
+    message = EmailMessage()
+    message["From"] = smtp_sender
+    message["To"] = recipient
+    message["Subject"] = subject
+    message.set_content(body)
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as server:
+            if use_tls:
+                server.starttls(context=ssl.create_default_context())
+            if smtp_username and smtp_password:
+                server.login(smtp_username, smtp_password)
+            server.send_message(message)
+        return True, "Confirmation email sent"
+    except Exception as exc:
+        return False, f"Failed to send email: {exc}"
+
+
 def _save_upload(file: UploadFile, sub_dir: str) -> str:
     folder = MEDIA_DIR / sub_dir
     folder.mkdir(parents=True, exist_ok=True)
@@ -554,7 +616,14 @@ def create_booking(
         status_value="waiting",
         current_user=current_user,
     )
-    return {"message": "Room booked successfully", "booking": _serialize_booking(db, booking)}
+    booking_data = _serialize_booking(db, booking)
+    email_sent, email_message = _send_booking_confirmation_email(booking_data)
+    return {
+        "message": "Room booked successfully",
+        "booking": booking_data,
+        "email_confirmation_sent": email_sent,
+        "email_confirmation_message": email_message,
+    }
 
 
 @app.post("/api/add_booking/{room_id}", status_code=status.HTTP_201_CREATED)
@@ -576,7 +645,14 @@ def create_booking_legacy(
         status_value="waiting",
         current_user=current_user,
     )
-    return {"message": "Room booked successfully", "booking": _serialize_booking(db, booking)}
+    booking_data = _serialize_booking(db, booking)
+    email_sent, email_message = _send_booking_confirmation_email(booking_data)
+    return {
+        "message": "Room booked successfully",
+        "booking": booking_data,
+        "email_confirmation_sent": email_sent,
+        "email_confirmation_message": email_message,
+    }
 
 
 @app.get("/api/bookings/me")

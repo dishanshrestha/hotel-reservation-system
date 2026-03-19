@@ -2,9 +2,15 @@
   const TOKEN_KEY = "hotel_admin_token";
   const USER_KEY = "hotel_admin_user";
   const API_BASE_KEY = "hotel_api_base";
+  const META_API_BASE = document.querySelector('meta[name="api-base-url"]')?.getAttribute("content") || "";
+
+  function normalizeApiBase(value) {
+    return String(value || "").trim().replace(/\/$/, "");
+  }
 
   const token = localStorage.getItem(TOKEN_KEY);
-  const apiBase = (localStorage.getItem(API_BASE_KEY) || "http://localhost:8000").replace(/\/$/, "");
+  const apiBase = normalizeApiBase(localStorage.getItem(API_BASE_KEY) || META_API_BASE || "http://localhost:8000");
+  localStorage.setItem(API_BASE_KEY, apiBase);
 
   if (!token) {
     window.location.href = "login.html";

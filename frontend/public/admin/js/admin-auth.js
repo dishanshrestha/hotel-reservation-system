@@ -2,15 +2,20 @@
   const TOKEN_KEY = "hotel_admin_token";
   const USER_KEY = "hotel_admin_user";
   const API_BASE_KEY = "hotel_api_base";
+  const META_API_BASE = document.querySelector('meta[name="api-base-url"]')?.getAttribute("content") || "";
 
   const form = document.getElementById("admin-login-form");
   const message = document.getElementById("login-message");
-  const baseInput = document.getElementById("api-base");
 
-  const savedBase = localStorage.getItem(API_BASE_KEY);
-  if (savedBase) {
-    baseInput.value = savedBase;
+  function normalizeApiBase(value) {
+    return String(value || "").trim().replace(/\/$/, "");
   }
+
+  function resolveApiBase() {
+    return normalizeApiBase(localStorage.getItem(API_BASE_KEY) || META_API_BASE || "http://localhost:8000");
+  }
+
+  localStorage.setItem(API_BASE_KEY, resolveApiBase());
 
   function showMessage(kind, text) {
     message.classList.remove("d-none", "alert-success", "alert-danger");
@@ -21,11 +26,11 @@
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const apiBase = baseInput.value.trim().replace(/\/$/, "");
+    const apiBase = resolveApiBase();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
 
-    if (!apiBase || !email || !password) {
+    if (!email || !password) {
       showMessage("error", "Please fill all fields.");
       return;
     }

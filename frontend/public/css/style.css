@@ -1008,6 +1008,72 @@ ul.social_icon li a:hover,
      color: var(--brand-accent) !important;
 }
 
+.room-page-feedback {
+     min-height: 26px;
+     font-size: 14px;
+     font-weight: 500;
+     padding: 0;
+}
+
+.room-page-feedback.is-error {
+     color: #b91c1c;
+}
+
+.room-page-feedback.is-success {
+     color: var(--brand-primary-dark);
+}
+
+.dynamic-room-card {
+     border: 1px solid var(--brand-border);
+}
+
+.dynamic-room-card .bed_room {
+     text-align: left;
+}
+
+.dynamic-room-card .room-meta {
+     margin-top: 6px;
+     color: var(--brand-muted);
+}
+
+.room-select-btn {
+     margin-top: 14px;
+     max-width: 100%;
+}
+
+.room-booking-panel {
+     background: var(--brand-surface);
+     border: 1px solid var(--brand-border);
+     border-radius: 12px;
+     padding: 24px;
+     box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+}
+
+.room-booking-panel h3 {
+     font-size: 28px;
+     font-weight: 600;
+     color: var(--brand-ink);
+     margin-bottom: 8px;
+}
+
+.room-booking-panel p {
+     margin-bottom: 18px;
+}
+
+.room-booking-panel label {
+     color: var(--brand-ink);
+     font-weight: 500;
+}
+
+.room-booking-panel .form-control {
+     border: 1px solid var(--brand-border);
+     min-height: 44px;
+}
+
+.room-booking-panel .book_btn {
+     margin: 8px 0 0;
+}
+
 
 
 

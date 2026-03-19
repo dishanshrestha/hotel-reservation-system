@@ -59,5 +59,38 @@ function getURL() { window.location.href; } var protocol = location.protocol; $.
         interval: 5000
      });
 
+	  function openDatePicker(input) {
+		  if (!input) {
+			 return;
+		  }
+
+		  if (typeof input.showPicker === 'function') {
+			 input.showPicker();
+			 return;
+		  }
+
+		  input.focus();
+		  input.click();
+	  }
+
+	  $('.js-date-picker-trigger').each(function () {
+		  $(this).css('cursor', 'pointer');
+	  });
+
+	  $('.js-date-picker-trigger').on('click', function () {
+		  var targetId = $(this).attr('data-target');
+		  openDatePicker(document.getElementById(targetId));
+	  });
+
+	  $('.js-date-picker-trigger').on('keydown', function (event) {
+		  if (event.key !== 'Enter' && event.key !== ' ') {
+			 return;
+		  }
+
+		  event.preventDefault();
+		  var targetId = $(this).attr('data-target');
+		  openDatePicker(document.getElementById(targetId));
+	  });
+
 
 });

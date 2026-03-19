@@ -63,19 +63,27 @@ Health check:
 
 ## Environment Variables
 
+Backend env files:
+
+- Copy `backend/.env.example` to `backend/.env`
+
 Supported backend environment variables:
 
 - `DATABASE_URL` (default: `sqlite:///backend/hotel.db`)
 - `JWT_SECRET_KEY` (default fallback exists, set a secure value for production)
 - `ACCESS_TOKEN_EXPIRE_MINUTES` (default: `1440`)
 - `CORS_ORIGINS` (default: `*`, comma-separated list supported)
+- `SMTP_HOST`
+- `SMTP_PORT` (default: `587`)
+- `SMTP_USERNAME`
+- `SMTP_PASSWORD`
+- `SMTP_SENDER`
+- `SMTP_USE_TLS` (default: `true`)
 
 Example:
 
 ```bash
-export DATABASE_URL="sqlite:///$(pwd)/backend/hotel.db"
-export JWT_SECRET_KEY="replace-with-a-secure-random-secret"
-export CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5173"
+cp backend/.env.example backend/.env
 ```
 
 ## Frontend
@@ -90,6 +98,11 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Frontend env files:
+
+- Copy `frontend/.env.example` to `frontend/.env`
+- Set `VITE_API_BASE_URL` in `frontend/.env` (example: `http://127.0.0.1:8000`)
 
 ## Notes About Migration
 

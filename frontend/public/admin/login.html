@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="api-base-url" content="%VITE_API_BASE_URL%">
     <title>Hotel Admin Login</title>
     <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/custom.css">
@@ -17,11 +18,6 @@
               <p class="small admin-kicker mb-2">Hotel Reservation</p>
               <h1 class="h3 mb-4">Admin Sign In</h1>
               <form id="admin-login-form" novalidate>
-                <div class="form-group mb-3">
-                  <label for="api-base">Backend URL</label>
-                  <input id="api-base" name="api-base" class="form-control" type="url" value="http://localhost:8000" required>
-                  <small class="form-text text-muted">FastAPI base URL for admin APIs.</small>
-                </div>
                 <div class="form-group mb-3">
                   <label for="email">Admin Email</label>
                   <input id="email" name="email" class="form-control" type="email" placeholder="admin@example.com" required>

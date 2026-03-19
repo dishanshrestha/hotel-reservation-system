@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -12,6 +14,9 @@ from sqlalchemy.orm import Session
 
 import models
 from database import get_db
+
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-secret-in-production")
