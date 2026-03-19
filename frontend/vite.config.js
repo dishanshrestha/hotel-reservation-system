@@ -9,5 +9,11 @@ export default defineConfig({
     server: {
         host: true,
         port: 5173,
+        hmr: {
+            protocol: 'ws',
+            host: 'localhost',
+            port: 5173,
+            overlay: false,
+        },
     },
 });
