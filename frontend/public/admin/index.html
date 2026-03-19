@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="api-base-url" content="%VITE_API_BASE_URL%">
+    <title>Hotel Admin Panel</title>
+    <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/custom.css">
+  </head>
+  <body class="admin-body">
+    <header class="admin-topbar py-3">
+      <div class="container-fluid px-3 px-md-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <p class="small admin-kicker mb-1">Hotel Reservation</p>
+          <h1 class="h4 mb-0">Admin Panel</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span id="admin-user-label" class="badge badge-light px-3 py-2">Admin</span>
+          <button id="logout-btn" class="btn btn-outline-light btn-sm">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container-fluid px-3 px-md-4 py-4">
+      <div id="dashboard-message" class="alert d-none" role="alert"></div>
+
+      <section class="mb-4">
+        <div class="row g-3">
+          <div class="col-lg-3 col-sm-6 mb-3">
+            <article class="admin-stat-card">
+              <p class="small text-muted mb-2">Users</p>
+              <h2 id="stat-users" class="h3 mb-0">0</h2>
+            </article>
+          </div>
+          <div class="col-lg-3 col-sm-6 mb-3">
+            <article class="admin-stat-card">
+              <p class="small text-muted mb-2">Rooms</p>
+              <h2 id="stat-rooms" class="h3 mb-0">0</h2>
+            </article>
+          </div>
+          <div class="col-lg-3 col-sm-6 mb-3">
+            <article class="admin-stat-card">
+              <p class="small text-muted mb-2">Bookings</p>
+              <h2 id="stat-bookings" class="h3 mb-0">0</h2>
+            </article>
+          </div>
+          <div class="col-lg-3 col-sm-6 mb-3">
+            <article class="admin-stat-card">
+              <p class="small text-muted mb-2">Income</p>
+              <h2 id="stat-income" class="h3 mb-0">$0.00</h2>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-panel mb-4">
+        <div class="row">
+          <div class="col-lg-5 mb-4 mb-lg-0">
+            <h3 class="h5 mb-3">Room Form</h3>
+            <form id="room-form">
+              <input id="room-id" type="hidden">
+              <div class="form-group mb-2">
+                <label for="room-title">Room Title</label>
+                <input id="room-title" class="form-control" type="text" required>
+              </div>
+              <div class="form-group mb-2">
+                <label for="room-description">Description</label>
+                <textarea id="room-description" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="form-row row">
+                <div class="form-group col-md-6 mb-2">
+                  <label for="room-price">Price</label>
+                  <input id="room-price" class="form-control" type="text" placeholder="150">
+                </div>
+                <div class="form-group col-md-6 mb-2">
+                  <label for="room-type">Room Type</label>
+                  <input id="room-type" class="form-control" type="text" placeholder="Deluxe">
+                </div>
+              </div>
+              <div class="form-row row">
+                <div class="form-group col-md-6 mb-2">
+                  <label for="room-wifi">WiFi</label>
+                  <select id="room-wifi" class="form-control">
+                    <option value="yes" selected>yes</option>
+                    <option value="no">no</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-6 mb-2">
+                  <label for="room-image-file">Choose Image</label>
+                  <input id="room-image-file" class="form-control-file" type="file" accept="image/*">
+                </div>
+              </div>
+              <div class="form-group mb-3">
+                <label for="room-image-url">Or Add Image URL</label>
+                <input id="room-image-url" class="form-control" type="url" placeholder="https://example.com/room.jpg">
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm mr-2">Save Room</button>
+                <button id="room-form-reset" type="button" class="btn btn-outline-secondary btn-sm">Clear</button>
+              </div>
+            </form>
+          </div>
+          <div class="col-lg-7">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h3 class="h5 mb-0">Rooms</h3>
+              <button id="refresh-rooms" class="btn btn-outline-primary btn-sm" type="button">Refresh</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle" id="rooms-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Type</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-panel mb-4">
+        <div class="row">
+          <div class="col-lg-4 mb-4 mb-lg-0">
+            <h3 class="h5 mb-3">Gallery Form</h3>
+            <form id="gallery-form">
+              <div class="form-group mb-2">
+                <label for="gallery-image-file">Choose Image</label>
+                <input id="gallery-image-file" class="form-control-file" type="file" accept="image/*">
+              </div>
+              <div class="form-group mb-3">
+                <label for="gallery-image-url">Or Add Image URL</label>
+                <input id="gallery-image-url" class="form-control" type="url" placeholder="https://example.com/photo.jpg">
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">Add Gallery Image</button>
+            </form>
+          </div>
+          <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h3 class="h5 mb-0">Gallery</h3>
+              <button id="refresh-gallery" class="btn btn-outline-primary btn-sm" type="button">Refresh</button>
+            </div>
+            <div id="gallery-grid" class="gallery-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-panel mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h3 class="h5 mb-0">Bookings</h3>
+          <button id="refresh-bookings" class="btn btn-outline-primary btn-sm" type="button">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle" id="bookings-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Guest</th>
+                <th>Room</th>
+                <th>Dates</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h3 class="h5 mb-0">Users</h3>
+          <button id="refresh-users" class="btn btn-outline-primary btn-sm" type="button">Refresh</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle" id="users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/admin-dashboard.js"></script>
+  </body>
+</html>

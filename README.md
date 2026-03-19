@@ -1,66 +1,174 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Hotel Reservation System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This project was migrated from PHP/Laravel to:
 
-## About Laravel
+- Backend: FastAPI + SQLAlchemy + JWT (`backend/`)
+- Frontend: static pages served by Vite (`frontend/public/`)
+- Database: SQLite by default
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What Is Implemented
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Public hotel website (home, rooms, gallery, blog, contact)
+- Room booking flow without user panel/login
+- Homepage `Book Now` redirects to `room.html` with selected dates
+- Admin login and dashboard for room/gallery/bookings/users management
+- Image management with both file upload and image URL options
+- Media files stored in `backend/media/` and served at `/media/*`
+- Booking confirmation email support via SMTP env configuration
+- Room recommendation and alternative date suggestion algorithms wired to booking UI
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Algorithms Added
 
-## Learning Laravel
+### 1) Weighted Multi-Factor Room Recommendation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Endpoint: `GET /api/recommendations/rooms`
+- Parameters:
+	- `start_date`, `end_date` (optional pair)
+	- `room_type` (optional)
+	- `max_budget` (optional)
+	- `wifi` (optional: `yes/no/true/false`)
+	- `top_k` (default `3`, max `10`)
+- How it works:
+	- Filters out unavailable rooms for the requested date range.
+	- Computes a weighted score per room using:
+		- average rating,
+		- price fit (budget-aware),
+		- room type match,
+		- wifi preference fit.
+	- Uses a top-K ranking strategy to return best matches.
+- Frontend wiring:
+	- `room.html` calls this endpoint when arrival/departure dates are present.
+	- Top recommendations are shown above the room list with quick-select buttons.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 2) Merged-Interval Gap Scan For Alternative Availability
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Endpoint: `GET /api/rooms/{room_id}/availability-suggestions`
+- Parameters:
+	- `start_date`, `end_date` (required)
+	- `max_suggestions` (default `3`, max `10`)
+- How it works:
+	- Collects room bookings as date intervals.
+	- Merges overlapping/adjacent intervals.
+	- Scans future gaps to find the next valid windows for the same stay length.
+- Booking conflict integration:
+	- `POST /api/bookings` and `POST /api/bookings/{room_id}` now return HTTP `409` with alternative slots when a date conflict occurs.
+	- The room booking UI renders these suggestions as one-click date options.
 
-## Laravel Sponsors
+## Project Structure
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- `backend/app.py`: FastAPI app, routes, booking flow, admin APIs
+- `backend/main.py`: compatibility ASGI entrypoint (`main:app`)
+- `backend/auth.py`: JWT and password utilities
+- `backend/database.py`: DB engine/session setup
+- `backend/models.py`: SQLAlchemy models
+- `backend/seed_admin.py`: helper script to create/update admin user
+- `frontend/public/`: site/admin HTML, CSS, JS assets
+- `frontend/vite.config.js`: Vite config (`public` as root)
 
-### Premium Partners
+## Requirements
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- Python 3.11+
+- Node.js 18+
+- npm
 
-## Contributing
+## Quick Start
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Use two terminals: one for backend, one for frontend.
 
-## Code of Conduct
+### 1) Backend Setup And Run
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app:app --reload --host 127.0.0.1 --port 8000
+```
 
-## Security Vulnerabilities
+Alternative startup (also supported):
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
 
-## License
+Backend base URL: `http://127.0.0.1:8000`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Health check: `GET http://127.0.0.1:8000/api/health`
+
+### 2) Frontend Setup And Run
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Frontend URL: `http://localhost:5173`
+
+## Environment Files
+
+This repo uses service-level env files.
+
+- Backend env: `backend/.env`
+- Frontend env: `frontend/.env`
+
+### Backend Env (`backend/.env`)
+
+Key variables:
+
+- `DATABASE_URL` (default SQLite)
+- `JWT_SECRET_KEY`
+- `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `CORS_ORIGINS`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USERNAME`
+- `SMTP_PASSWORD`
+- `SMTP_SENDER`
+- `SMTP_USE_TLS`
+
+Notes:
+
+- If `SMTP_HOST` is empty, booking still works but email confirmation is skipped.
+- To enable booking emails, set valid SMTP credentials.
+
+### Frontend Env (`frontend/.env`)
+
+- `VITE_API_BASE_URL=http://127.0.0.1:8000`
+
+Frontend pages read this value and call backend APIs using that base URL.
+
+## Important Routes
+
+- Public home: `http://localhost:5173/`
+- Rooms page: `http://localhost:5173/room.html`
+- Admin login: `http://localhost:5173/admin/login.html`
+- Admin redirect alias: `http://localhost:5173/login.html`
+
+## Admin Access
+
+Create an admin user (if needed):
+
+```bash
+cd backend
+source .venv/bin/activate
+python seed_admin.py --email admin@example.com --password StrongPass123! --name "Hotel Admin"
+```
+
+Then login at `http://localhost:5173/admin/login.html`.
+
+## Build Commands
+
+Frontend production build:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Migration Notes
+
+- Legacy PHP/Laravel app files were removed.
+- Existing schema-compatible table names are preserved (`users`, `rooms`, `bookings`, `gallaries`, `contacts`, `room_ratings`).
